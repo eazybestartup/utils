@@ -1,0 +1,10 @@
+#!/bin/bash -e
+
+if [ -z "$REPOS" ]; then
+  echo "Cannot continue. Define env variable REPOS to repositories directory. (sample - export REPOS=$HOME/workspace)"
+  exit;
+fi
+
+echo "Repositories directory -> $REPOS"
+
+export SERVICES=("eazybe-api/ruby" "database/postgres" "router/nginx")

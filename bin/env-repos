@@ -1,0 +1,7 @@
+#!/bin/bash -e
+
+#REPOS='/home/gneves/wp-publish5'
+
+dirs=("${REPOS}/eazybe-api")
+
+dirsLength=${#dirs[@]}

@@ -1,0 +1,35 @@
+version: '3'
+
+services:
+  database:
+    image: postgres:latest
+    volumes:
+      - ./bin/multi-post-db.sh:/docker-entrypoint-initdb.d/multi-post-db.sh
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_MULTIPLE_DATABASES=eazybedb
+      - POSTGRES_USER=postgres
+ 
+  eazybe-api:
+    build:
+      context: ../eazybe-api
+    ports:
+      - "3000:3000"
+    hostname: tag
+    volumes:
+      - ../storage:/eazybe-api/storage
+    environment:
+      - POSTGRES_HOST=database
+      - POSTGRES_DB=tagdb
+      - JWT_KEY=JWT_KEY
+      - KAFKA_HOST=kafka://kafka:9092
+      - ACTIVE_STORAGE_HOST=localhost:3000
+      - ELASTIC_HOST=elasticsearch
+      - ELASTIC_CLUSTER_NAME=docker-cluster
+    deploy:
+      resources:
+        limits:
+          memory: 320M
+    links:
+      - database

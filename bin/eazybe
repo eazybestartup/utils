@@ -1,0 +1,90 @@
+#!/bin/bash -e
+
+source env-setup
+
+start() {
+  if [[ -z "${1// }" ]] ;then
+    sudo docker-compose -f $REPOS/utils/docker-compose.yml --compatibility up -d
+    logs
+  else
+    sudo docker start utils_$1_1
+    logs $1
+  fi
+}
+
+stop() {
+  if [[ -z "${1// }" ]] ;then
+    sudo docker-compose -f $REPOS/install/utils/docker-compose.yml stop
+  else
+    sudo docker stop utils_$1_1
+  fi
+}
+
+logs() {
+  if [[ -z "${1// }" ]] ;then
+    sudo docker-compose -f $REPOS/install/utils/docker-compose.yml logs -f
+  else
+    sudo docker logs -f utils_$1_1
+  fi
+}
+
+stats() {
+  sudo docker stats
+}
+
+sql() {
+  sudo docker exec -it utils_database_1 psql -U postgres
+}
+
+purge() {
+  echo -n "This will delete all data. Are you sure? (y/n): "
+  read answer
+  if [ "$answer" != "${answer#[Yy]}" ] ;then
+    echo "Purging all services"
+  else
+    echo "Exiting"
+    exit
+  fi
+  stop
+  for s in ${SERVICES[@]}; do
+    p=(${s//// })
+    printf "\n*** Purging service ${p[0]} ***\n"
+    sudo docker rm utils_${p[0]}_1 || true
+    sudo docker rmi utils_${p[0]}:latest || true
+  done
+}
+
+case "$1" in
+  start)
+    echo "Starting"
+    start $2
+  ;;
+  stop)
+    echo "Stoping"
+    stop $2
+  ;;
+  restart)
+    echo "restarting"
+    stop $2
+    start $2
+  ;;
+  logs)
+    logs $2
+  ;;
+  stats)
+    stats
+  ;;
+  sql)
+    sql
+  ;;  
+  purge)
+    purge
+  ;;
+  update_api)
+    update_api
+  ;;
+  *)
+  echo "Usage: eazybe {start <name>|stop <name>|restart <name>|logs <name>|stats|sql|purge}" || true
+  exit 1
+esac
+exit 0
